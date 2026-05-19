@@ -27,8 +27,9 @@ async fn write_file_impl(path: &Path, content: &str) -> io::Result<()> {
 }
 
 fn tmp_path_for(path: &Path) -> PathBuf {
+    let suffix = format!(".knot-tmp.{}", uuid::Uuid::new_v4().simple());
     let mut s = path.as_os_str().to_owned();
-    s.push(".knot-tmp");
+    s.push(&suffix);
     PathBuf::from(s)
 }
 
@@ -70,6 +71,12 @@ mod tests {
         write_file_impl(&p, "new").await.unwrap();
         let got = std::fs::read_to_string(&p).unwrap();
         assert_eq!(got, "new");
-        assert!(!tmp_path_for(&p).exists());
+        // No leftover temp file in the parent directory
+        let leftovers: Vec<_> = std::fs::read_dir(dir.path())
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|e| e.file_name().to_string_lossy().starts_with("c.md.knot-tmp"))
+            .collect();
+        assert!(leftovers.is_empty(), "leftover temp files: {leftovers:?}");
     }
 }
