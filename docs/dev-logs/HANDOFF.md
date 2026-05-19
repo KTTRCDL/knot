@@ -17,11 +17,15 @@ The active plan is at [`../superpowers/plans/2026-05-19-knot-m1-foundation.md`](
 | Role | Identity | Memory |
 |---|---|---|
 | **Manager** | Claude (this session) | Reads/writes `~/.claude/projects/-Users-kttrcdl-project/memory/` |
-| **Engineer-1** | Subagent, ephemeral. Worktree-isolated. | None — gets the plan and spec by path, returns a report. |
-| **Engineer-2** | Subagent, ephemeral. Worktree-isolated. | None. |
-| **Engineer-3** | Subagent, ephemeral. Worktree-isolated. | None. |
+| **Implementer** | Fresh subagent per phase. | None — gets the plan path, spec path, and full task text in the prompt; returns a report. |
+| **Simplify** | Fresh subagent invoking the `/simplify` skill on the implementer's diff. | None. Runs after implementer reports DONE. |
+| **Spec reviewer** | Fresh subagent. Reads the diff independently. | None. |
+| **Code quality reviewer** | Fresh subagent. | None. |
 
-Each engineer subagent works on **its own worktree** (`isolation: "worktree"`) and writes its progress report to `docs/dev-logs/M<n>/<task-name>.md` inside its branch. The manager merges the worktree back to `main` after review.
+**Per-phase cycle (as of 2026-05-19):**
+implementer → simplify pass → spec compliance review → code quality review → manager pushes.
+
+**Commit author:** `KTTRCDL <KTTRCDL@outlook.com>` (set as repo-local config, not global). All future commits use this email.
 
 ---
 
