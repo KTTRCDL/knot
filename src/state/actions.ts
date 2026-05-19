@@ -22,3 +22,15 @@ export async function saveDoc(): Promise<void> {
   await writeFile(path, state.content);
   useDocumentStore.setState({ path, dirty: false });
 }
+
+export async function saveDocAs(): Promise<void> {
+  const state = useDocumentStore.getState();
+  const defaultName =
+    state.path != null && state.path !== ''
+      ? state.path.split('/').pop() ?? 'Untitled.md'
+      : 'Untitled.md';
+  const newPath = await pickFileToSave(defaultName);
+  if (!newPath) return; // cancel — leave existing path intact
+  await writeFile(newPath, state.content);
+  useDocumentStore.setState({ path: newPath, dirty: false });
+}

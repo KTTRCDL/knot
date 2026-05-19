@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { message } from '@tauri-apps/plugin-dialog';
 import { Editor } from './editor/Editor';
 import { useDocumentStore } from './state/document';
-import { newDoc, openDoc, saveDoc } from './state/actions';
+import { newDoc, openDoc, saveDoc, saveDocAs } from './state/actions';
 import { registerMenuEvents } from './menu/menuEvents';
 import { toggleTheme } from './styles/theme';
 import styles from './App.module.css';
@@ -49,10 +49,7 @@ export default function App() {
       'menu.file.new': safeAction('New', () => remountAndRun(newDoc)),
       'menu.file.open': safeAction('Open', () => remountAndRun(openDoc)),
       'menu.file.save': safeAction('Save', () => saveDoc()),
-      'menu.file.save_as': safeAction('Save As', async () => {
-        useDocumentStore.setState({ path: null });
-        await saveDoc();
-      }),
+      'menu.file.save_as': safeAction('Save As', () => saveDocAs()),
       'menu.view.toggle_theme': () => toggleTheme(),
     });
     return () => {

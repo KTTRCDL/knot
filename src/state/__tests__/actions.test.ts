@@ -9,7 +9,7 @@ vi.mock('../../io/io', () => ({
 }));
 
 import * as io from '../../io/io';
-import { newDoc, openDoc, saveDoc } from '../actions';
+import { newDoc, openDoc, saveDoc, saveDocAs } from '../actions';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -64,5 +64,30 @@ describe('document actions', () => {
     (io.pickFileToSave as ReturnType<typeof vi.fn>).mockResolvedValue(null);
     await saveDoc();
     expect(io.writeFile).not.toHaveBeenCalled();
+  });
+
+  it('saveDocAs writes to chosen path and updates store', async () => {
+    useDocumentStore.getState().open({ path: '/tmp/old.md', content: 'data' });
+    (io.pickFileToSave as ReturnType<typeof vi.fn>).mockResolvedValue('/tmp/new.md');
+    await saveDocAs();
+    expect(io.writeFile).toHaveBeenCalledWith('/tmp/new.md', 'data');
+    expect(useDocumentStore.getState().path).toBe('/tmp/new.md');
+    expect(useDocumentStore.getState().dirty).toBe(false);
+  });
+
+  it('saveDocAs preserves existing path when dialog is cancelled', async () => {
+    useDocumentStore.getState().open({ path: '/tmp/keep.md', content: 'data' });
+    (io.pickFileToSave as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+    await saveDocAs();
+    expect(io.writeFile).not.toHaveBeenCalled();
+    // Critical: path must NOT be cleared just because dialog was cancelled
+    expect(useDocumentStore.getState().path).toBe('/tmp/keep.md');
+  });
+
+  it('saveDocAs defaults the dialog name to the current basename', async () => {
+    useDocumentStore.getState().open({ path: '/Users/me/notes/Q3.md', content: 'data' });
+    (io.pickFileToSave as ReturnType<typeof vi.fn>).mockResolvedValue('/tmp/new.md');
+    await saveDocAs();
+    expect(io.pickFileToSave).toHaveBeenCalledWith('Q3.md');
   });
 });
