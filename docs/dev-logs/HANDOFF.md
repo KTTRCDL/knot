@@ -43,7 +43,7 @@ Each engineer subagent works on **its own worktree** (`isolation: "worktree"`) a
 |---|---|---|---|
 | **Phase 1** | `src/editor/`, `src/App.tsx`, `src/App.module.css` | 1.1-1.4 | ✅ **DONE** (7 commits, see below) |
 | **Phase 2** | `src/state/`, `src/App.tsx` | 2.1-2.4 | ✅ **DONE** (3 commits, see below) |
-| Phase 3 | `src-tauri/src/commands/fs.rs` + plugin/capability setup | 3.1-3.3 | pending |
+| **Phase 3** | `src-tauri/src/commands/fs.rs` + plugin/capability setup | 3.1-3.3 | ✅ **DONE** (5 commits, see below) |
 | Phase 4 | `src/io/`, `src/state/actions.ts` | 4.1-4.3 | pending |
 | Phase 5 | `src-tauri/src/menu.rs`, `src/menu/`, App.tsx integration | 5.1-5.3 | pending |
 | Phase 6 | `src/styles/` | 6.1-6.2 | pending |
@@ -65,6 +65,20 @@ Commits: `605ed10` zustand dep · `93def90` document store (TDD: 4 tests + impl)
 
 - Spec compliance: ✅ approved. App.tsx adds one `eslint-disable-next-line react-hooks/set-state-in-effect` on the `setEditorKey` line (rule is real and necessary — verified by removing the disable and lint errors out).
 - Code quality: ✅ approved. Zero Critical/Important issues. 5 Minor items captured below as follow-ups.
+
+#### Phase 3 result
+
+Initial commits: `9ef430e` plugins · `dc1c2a7` fs commands + 4 tests · `565e899` register + capabilities.
+Polish commits (from code review follow-up): `2e2b8c7` randomized temp suffix · `6edd415` 3 new tests (sibling-temp, missing-parent, stale-temp).
+
+- Spec compliance: ✅ approved. Deviations: rustfmt reflow on fs.rs (cosmetic).
+- Code quality: "Yes, with a small follow-up" — applied as the 2 polish commits. 7 tests total, all green.
+- `pnpm tauri build --no-bundle` succeeds end-to-end with new commands + capabilities.
+
+**Phase 3 follow-up TODOs (revisit in later phases):**
+- I2 (`tmp_path_for` trailing-slash edge case) — defer until M2/M3 when more file paths flow through.
+- I4 (concurrent-writer correctness) — randomized suffix mitigated to "last-write-wins"; revisit if real concurrency emerges.
+- I5 (tagged error enum instead of stringified errors) — useful when Phase 4 wants to discriminate `NotFound` from `PermissionDenied` for UX.
 
 **Phase 2 follow-up TODOs (revisit in Phase 4):**
 - Welcome doc uses `path: ''` (empty string) instead of `null`. Phase 4 may want to widen `open()` to `path: string | null` or seed via INITIAL.
