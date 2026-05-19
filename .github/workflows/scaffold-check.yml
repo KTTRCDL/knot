@@ -44,8 +44,11 @@ jobs:
           echo "Forbidden paths:"
           for p in "${FORBIDDEN[@]}"; do echo "  - ${p}"; done
 
-          # Files changed in the PR
-          CHANGED=$(git diff --name-only "${BASE_SHA}".."${HEAD_SHA}")
+          # Files ADDED or MODIFIED in the PR. Deletions are always OK
+          # (they REMOVE a path from the target, which can never violate
+          # a forbidden-paths rule). The `--diff-filter=AM` keeps only
+          # Added/Modified entries.
+          CHANGED=$(git diff --name-only --diff-filter=AM "${BASE_SHA}".."${HEAD_SHA}")
 
           FAIL=0
           for path in "${FORBIDDEN[@]}"; do
