@@ -178,6 +178,10 @@ DMG SHA-256: `1705050610b9b8569ffbe4e3ea8a677d5d1fcbc56b0a48e14ec8706974a419b0`.
 
 - **2026-05-19** Decided: pnpm pinned to **9.15.x** because pnpm@latest needs Node ≥22.13 and local Node is 20.20.1. CI also pinned to pnpm@9. Reason: avoid forcing a Node upgrade on the user.
 - **2026-05-19** Decided: GitHub username canonical case is **KTTRCDL**. Plan references updated.
+- **2026-05-19** Decided: branch protection on `main` AND `dev` now requires all 5 status checks (`frontend`, `backend`, `build`, `paths`, `authors`) AND `enforce_admins=true`. PR #2 leaked `scripts/` + `docs/dev/` to main because protection didn't yet require checks; that's fixed in PR #4 (cleanup) + PR #5 (scaffold-check ignores deletions) + PR #6/#8 (ports to dev) + PR #7 (ci.yml triggers on dev).
+- **2026-05-19** Decided: closed PRs #1 (`dev_kttrcdl_Claude_Code → main`) and #3 (`dev_kttrcdl_ClaudeTeam → main`) were closed without merging — no leak. Both branches still exist intact. They had wrong base (`main` instead of `dev`) and un-stripped paths; future integration uses `./scripts/prepare-pr.sh dev` first. Currently no product-code diff between dev and either dev_kttrcdl_* branch, so no urgent integration needed.
+- **2026-05-19** Decided: scaffold-check workflow ignores deletions (`--diff-filter=AM`). Deleting a forbidden path is always safe.
+- **2026-05-19** Decided: `ci.yml` triggers on PRs/pushes to both `main` AND `dev`. Previously dev had no frontend/backend/build coverage.
 
 ---
 
