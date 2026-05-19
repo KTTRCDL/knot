@@ -44,7 +44,7 @@ Each engineer subagent works on **its own worktree** (`isolation: "worktree"`) a
 | **Phase 1** | `src/editor/`, `src/App.tsx`, `src/App.module.css` | 1.1-1.4 | ✅ **DONE** (7 commits, see below) |
 | **Phase 2** | `src/state/`, `src/App.tsx` | 2.1-2.4 | ✅ **DONE** (3 commits, see below) |
 | **Phase 3** | `src-tauri/src/commands/fs.rs` + plugin/capability setup | 3.1-3.3 | ✅ **DONE** (5 commits, see below) |
-| Phase 4 | `src/io/`, `src/state/actions.ts` | 4.1-4.3 | pending |
+| **Phase 4** | `src/io/`, `src/state/actions.ts` | 4.1-4.3 | ✅ **DONE** (3 commits, see below) |
 | Phase 5 | `src-tauri/src/menu.rs`, `src/menu/`, App.tsx integration | 5.1-5.3 | pending |
 | Phase 6 | `src/styles/` | 6.1-6.2 | pending |
 
@@ -79,6 +79,20 @@ Polish commits (from code review follow-up): `2e2b8c7` randomized temp suffix ·
 - I2 (`tmp_path_for` trailing-slash edge case) — defer until M2/M3 when more file paths flow through.
 - I4 (concurrent-writer correctness) — randomized suffix mitigated to "last-write-wins"; revisit if real concurrency emerges.
 - I5 (tagged error enum instead of stringified errors) — useful when Phase 4 wants to discriminate `NotFound` from `PermissionDenied` for UX.
+
+#### Phase 4 result
+
+Commits: `fad1f0a` deps · `af6d2aa` io wrapper (5 tests) · `2cc95f2` actions (6 tests).
+- Spec compliance: ✅ approved. Zero drift from plan.
+- Code quality: "Yes — with follow-up TODOs filed." 2 Important + 5 Minor issues, all non-blocking for the phase.
+
+**Phase 4 follow-up TODOs (Phase 5 MUST handle Important #2; rest can wait):**
+- **(Important, Phase 5 wires it)** Error handling for `readFile`/`writeFile` rejections. Pattern A chosen: Phase 5 menu handlers will wrap each action call in try/catch and surface user-facing errors via `@tauri-apps/plugin-dialog`'s `message()` API.
+- **(Important, deferrable)** `pickFileToSave` should default to current filename (`basename(state.path)`) for Save-As UX.
+- **(Minor)** `pickFileToSave` has a redundant `as string | null` cast — simplify to `return result;` or runtime-narrow with `typeof === 'string'`.
+- **(Minor)** Add `markSaved(path)` action to the store; replace `saveDoc`'s imperative `setState`.
+- **(Minor)** Add error-path tests for io (`invoke` rejects) and actions (readFile/writeFile reject).
+- **(Minor, Phase 5+)** App.tsx welcome doc uses `path: ''` — should be `path: null` (carries forward from Phase 2 M1).
 
 **Phase 2 follow-up TODOs (revisit in Phase 4):**
 - Welcome doc uses `path: ''` (empty string) instead of `null`. Phase 4 may want to widen `open()` to `path: string | null` or seed via INITIAL.
