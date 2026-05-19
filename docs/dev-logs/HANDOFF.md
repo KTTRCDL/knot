@@ -45,8 +45,7 @@ Each engineer subagent works on **its own worktree** (`isolation: "worktree"`) a
 | **Phase 2** | `src/state/`, `src/App.tsx` | 2.1-2.4 | ✅ **DONE** (3 commits, see below) |
 | **Phase 3** | `src-tauri/src/commands/fs.rs` + plugin/capability setup | 3.1-3.3 | ✅ **DONE** (5 commits, see below) |
 | **Phase 4** | `src/io/`, `src/state/actions.ts` | 4.1-4.3 | ✅ **DONE** (3 commits, see below) |
-| Phase 5 | `src-tauri/src/menu.rs`, `src/menu/`, App.tsx integration | 5.1-5.3 | pending |
-| Phase 6 | `src/styles/` | 6.1-6.2 | pending |
+| **Phase 5+6** | `src-tauri/src/menu.rs`, `src/menu/`, `src/styles/`, App.tsx, main.tsx | 5.1-6.2 | ✅ **DONE** (7 commits, see below) |
 
 #### Phase 1 result
 
@@ -93,6 +92,25 @@ Commits: `fad1f0a` deps · `af6d2aa` io wrapper (5 tests) · `2cc95f2` actions (
 - **(Minor)** Add `markSaved(path)` action to the store; replace `saveDoc`'s imperative `setState`.
 - **(Minor)** Add error-path tests for io (`invoke` rejects) and actions (readFile/writeFile reject).
 - **(Minor, Phase 5+)** App.tsx welcome doc uses `path: ''` — should be `path: null` (carries forward from Phase 2 M1).
+
+#### Phase 5+6 result (combined per plan dependency)
+
+Initial commits: `cbb2bd1` theme tokens · `1d23736` theme.ts + tests · `3bb0f5f` Rust menu · `065efe9` menu dispatcher · `f20970e` App.tsx wire + safeAction.
+Review fix commits: `2c05264` Save As bug (path-preservation + 3 tests) · `165b5c1` theme test gap (localStorage clear assertion).
+
+- Spec compliance: ✅ approved with zero drift. 5-commit ordering preserved.
+- Code quality round 1: "With fixes" — 1 Critical (Save As clears path before cancellable dialog) + 1 Important (test gap).
+- Code quality round 2 (after fixes): all critical/important resolved. New `saveDocAs()` action lives in `src/state/actions.ts` for Save-As; old `useDocumentStore.setState({ path: null })` workaround removed.
+- 25 frontend tests pass (was 22 → 25 after the +3 saveDocAs tests). 7 Rust tests pass.
+- `pnpm tauri build --no-bundle` succeeds end-to-end with menu + capabilities + Phase 4 plugins all wired.
+
+**Phase 5+6 follow-up TODOs (carry to Phase 7 prep or beyond):**
+- Welcome doc `path: ''` vs `path: null` consistency (deferred from Phase 2/4).
+- Document menu-event-dispatcher contract on `registerMenuEvents` (handlers must not let promises reject — `safeAction` is the catch).
+- Move `safeAction` to `src/lib/` if/when a second caller appears (M2+).
+- Static menu: no dynamic enable/disable for items (Save when not dirty). M2 concern.
+- Titlebar height hardcoded 28px — move to `--knot-titlebar-h` token when Phase 7 wires `titleBarStyle: "Overlay"`.
+- Defensive guard in `getTheme()` for unexpected `data-theme` values.
 
 **Phase 2 follow-up TODOs (revisit in Phase 4):**
 - Welcome doc uses `path: ''` (empty string) instead of `null`. Phase 4 may want to widen `open()` to `path: string | null` or seed via INITIAL.
