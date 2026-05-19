@@ -14,21 +14,23 @@ export function Editor({ initialContent, onChange }: EditorProps) {
 
   useEffect(() => {
     if (!ref.current) return;
+    let cancelled = false;
     const crepe = new Crepe({
       root: ref.current,
       defaultValue: initialContent,
     });
     crepe.on((listener) => {
       listener.markdownUpdated((_ctx, markdown) => {
+        if (cancelled) return;
         onChange(markdown);
       });
     });
     crepe.create();
     return () => {
-      crepe.destroy();
+      cancelled = true;
+      void crepe.destroy();
     };
-    // Crepe is initialized once on mount; subsequent prop changes are
-    // handled by the editor instance itself, not by re-creating it.
+    // initialContent and onChange are read once on mount; see EditorProps JSDoc.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
