@@ -1,0 +1,12 @@
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --knot-bg: #ffffff;
+  --knot-bg-elevated: #f7f7f7;
+  --knot-fg: #1d1d1f;
+  --knot-fg-muted: #6e6e73;
+  --knot-border: #e5e5ea;
+  --knot-accent: #0a84ff;
+  --knot-selection: #b3d4fc;
+  --knot-code-bg: #f5f5f7;
+}

@@ -1,0 +1,10 @@
+:root {
+  --knot-font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+  --knot-font-mono: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --knot-font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+  --knot-radius: 6px;
+  --knot-pad-h: 4rem;
+  --knot-pad-v: 2rem;
+  --knot-line-height: 1.7;
+  --knot-font-size: 16px;
+}

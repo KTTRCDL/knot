@@ -1,0 +1,26 @@
+body {
+  font-family: var(--knot-font-body);
+  font-size: var(--knot-font-size);
+  line-height: var(--knot-line-height);
+  color: var(--knot-fg);
+  background: var(--knot-bg);
+  margin: 0;
+}
+
+.milkdown {
+  font-family: var(--knot-font-body);
+  font-size: var(--knot-font-size);
+  line-height: var(--knot-line-height);
+}
+
+.milkdown h1 { font-size: 2.2em; font-weight: 700; margin: 1.2em 0 0.6em; }
+.milkdown h2 { font-size: 1.6em; font-weight: 700; margin: 1.1em 0 0.5em; }
+.milkdown h3 { font-size: 1.3em; font-weight: 600; margin: 1em 0 0.4em; }
+.milkdown h4 { font-size: 1.1em; font-weight: 600; margin: 1em 0 0.3em; }
+.milkdown p { margin: 0.6em 0; }
+.milkdown code { font-family: var(--knot-font-mono); background: var(--knot-code-bg); padding: 0.1em 0.3em; border-radius: 3px; font-size: 0.92em; }
+.milkdown pre { background: var(--knot-code-bg); padding: 1em; border-radius: var(--knot-radius); overflow-x: auto; }
+.milkdown blockquote { border-left: 3px solid var(--knot-border); padding-left: 1em; color: var(--knot-fg-muted); margin: 1em 0; }
+.milkdown a { color: var(--knot-accent); text-decoration: none; }
+.milkdown a:hover { text-decoration: underline; }
+.milkdown ::selection { background: var(--knot-selection); }
