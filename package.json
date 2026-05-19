@@ -13,6 +13,14 @@
     "test": "vitest --passWithNoTests"
   },
   "dependencies": {
+    "@milkdown/core": "^7.21.1",
+    "@milkdown/crepe": "^7.21.1",
+    "@milkdown/ctx": "^7.21.1",
+    "@milkdown/preset-commonmark": "^7.21.1",
+    "@milkdown/preset-gfm": "^7.21.1",
+    "@milkdown/theme-nord": "^7.21.1",
+    "@milkdown/transformer": "^7.21.1",
+    "@milkdown/utils": "^7.21.1",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "react": "^19.1.0",
