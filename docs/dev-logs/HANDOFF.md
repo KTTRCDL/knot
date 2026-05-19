@@ -42,7 +42,7 @@ Each engineer subagent works on **its own worktree** (`isolation: "worktree"`) a
 | Phase | Owns | Tasks | Status |
 |---|---|---|---|
 | **Phase 1** | `src/editor/`, `src/App.tsx`, `src/App.module.css` | 1.1-1.4 | ✅ **DONE** (7 commits, see below) |
-| Phase 2 | `src/state/` | 2.1-2.4 | pending |
+| **Phase 2** | `src/state/`, `src/App.tsx` | 2.1-2.4 | ✅ **DONE** (3 commits, see below) |
 | Phase 3 | `src-tauri/src/commands/fs.rs` + plugin/capability setup | 3.1-3.3 | pending |
 | Phase 4 | `src/io/`, `src/state/actions.ts` | 4.1-4.3 | pending |
 | Phase 5 | `src-tauri/src/menu.rs`, `src/menu/`, App.tsx integration | 5.1-5.3 | pending |
@@ -58,6 +58,20 @@ Review fixes (4 commits): `78fdb21` stronger test · `51bc8bf` cancelled flag ·
 - Code quality round 2 (after fixes): ✅ approved. Breakage test confirmed new assertions actually catch Crepe failures.
 - Decision: leave the 1.67 MB Vite chunk warning (Milkdown+ProseMirror) as a known follow-up. Tauri local bundle, not web-shipped, so accepting for v0.x.
 - Decision: minor follow-ups (DEFAULT_DOC drift, prevMarkdown short-circuit, useState discard comment) deferred — not blocking.
+
+#### Phase 2 result
+
+Commits: `605ed10` zustand dep · `93def90` document store (TDD: 4 tests + impl) · `eaf2844` App wire (Zustand selectors + editorKey remount).
+
+- Spec compliance: ✅ approved. App.tsx adds one `eslint-disable-next-line react-hooks/set-state-in-effect` on the `setEditorKey` line (rule is real and necessary — verified by removing the disable and lint errors out).
+- Code quality: ✅ approved. Zero Critical/Important issues. 5 Minor items captured below as follow-ups.
+
+**Phase 2 follow-up TODOs (revisit in Phase 4):**
+- Welcome doc uses `path: ''` (empty string) instead of `null`. Phase 4 may want to widen `open()` to `path: string | null` or seed via INITIAL.
+- The `editorKey` remount trick is acknowledged transitional; Task 4.5 should formalize.
+- Add direct unit tests for `markClean()` and `reset()` (currently only exercised transitively).
+- Consider `open()` short-circuit when path+content match the current state.
+- Consider Milkdown round-trip whitespace normalization that could mark welcome doc as dirty on first listener call.
 
 ### Phase 7 — Release (manager)
 
