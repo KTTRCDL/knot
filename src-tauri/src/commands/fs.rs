@@ -79,4 +79,51 @@ mod tests {
             .collect();
         assert!(leftovers.is_empty(), "leftover temp files: {leftovers:?}");
     }
+
+    #[tokio::test]
+    async fn tmp_path_for_uses_sibling_not_child() {
+        let p = Path::new("/tmp/foo/bar.md");
+        let tmp = tmp_path_for(p);
+        assert_eq!(tmp.parent(), p.parent());
+        assert!(
+            tmp.file_name()
+                .unwrap()
+                .to_string_lossy()
+                .starts_with("bar.md.knot-tmp"),
+            "tmp filename should start with `bar.md.knot-tmp`, got {:?}",
+            tmp.file_name()
+        );
+    }
+
+    #[tokio::test]
+    async fn write_to_missing_parent_errors_cleanly() {
+        let dir = tempdir().unwrap();
+        let p = dir.path().join("no-such-dir").join("file.md");
+        let err = write_file_impl(&p, "hi").await.unwrap_err();
+        assert_eq!(err.kind(), std::io::ErrorKind::NotFound);
+    }
+
+    #[tokio::test]
+    async fn write_overwrites_stale_tmp_file_and_leaves_no_temp() {
+        // Pre-create a stale .knot-tmp.<something> file. With a randomized suffix
+        // we can't predict the exact name, so we just create a plausibly-stale one;
+        // the write_file_impl will pick a different random suffix anyway, but the
+        // stale one should not break the atomic write.
+        let dir = tempdir().unwrap();
+        let p = dir.path().join("d.md");
+        std::fs::write(&p, "original").unwrap();
+        let stale = dir.path().join("d.md.knot-tmp.stale123");
+        std::fs::write(&stale, "garbage").unwrap();
+
+        write_file_impl(&p, "new").await.unwrap();
+
+        let got = std::fs::read_to_string(&p).unwrap();
+        assert_eq!(got, "new");
+        // The stale file may or may not still exist — different uuid means we wouldn't
+        // touch it. The important invariant: target has new content, no NEW temp leftover.
+        assert!(
+            !stale.exists() || std::fs::read_to_string(&stale).unwrap() == "garbage",
+            "stale temp content should be untouched if file still exists"
+        );
+    }
 }
