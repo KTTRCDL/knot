@@ -27,23 +27,37 @@ Each engineer subagent works on **its own worktree** (`isolation: "worktree"`) a
 
 ## M1 — Foundation (in progress)
 
-### Phase 0 — Scaffold (manager)
+### Phase 0 — Scaffold (manager) — DONE
 
 | Task | Status | Notes |
 |---|---|---|
-| 0.1 Pre-flight | done | Installed: pnpm@9.15.0, tmux@3.6a, Rust (in progress). Node@20.20.1, gh@2.88.1 already present. GitHub user: KTTRCDL. |
-| 0.2 Scaffold Tauri | pending | After Rust install completes. |
-| 0.3 Git init + LICENSE + README | pending | |
-| 0.4 GitHub repo create | pending | Repo will be `KTTRCDL/knot`. |
-| 0.5 CI workflow | pending | |
+| 0.1 Pre-flight | done | Installed: pnpm@9.15.0, tmux@3.6a, Rust 1.95.0. Node@20.20.1, gh@2.88.1. GitHub user: KTTRCDL. |
+| 0.2 Scaffold Tauri | done | Tauri 2.11.2, react-ts template. Crate renamed knot-scaffold → knot, lib name knot_lib. |
+| 0.3 Git init + LICENSE + README | done | First commit `ee58777`. |
+| 0.4 GitHub repo create | done | https://github.com/KTTRCDL/knot — public. Branch protection (no force-push, no delete) on `main`. |
+| 0.5 CI workflow | done | `.github/workflows/ci.yml` with frontend/backend/build jobs. First run id 26089756846. |
 
-### Phase 1-6 — Engineers (parallel after Phase 0)
+### Phase 1-6 — Engineers (serial dispatch, two-stage review per phase)
 
-| Engineer | Owns | Tasks | Status |
+| Phase | Owns | Tasks | Status |
 |---|---|---|---|
-| Engineer-1 | `src/editor/` | 1.1-1.4 | pending |
-| Engineer-2 | `src/state/`, `src/io/`, `src-tauri/src/commands/fs.rs` | 2.1-4.3 | pending |
-| Engineer-3 | `src-tauri/src/menu.rs`, `src/menu/`, `src/styles/` | 5.1-6.2 | pending |
+| **Phase 1** | `src/editor/`, `src/App.tsx`, `src/App.module.css` | 1.1-1.4 | ✅ **DONE** (7 commits, see below) |
+| Phase 2 | `src/state/` | 2.1-2.4 | pending |
+| Phase 3 | `src-tauri/src/commands/fs.rs` + plugin/capability setup | 3.1-3.3 | pending |
+| Phase 4 | `src/io/`, `src/state/actions.ts` | 4.1-4.3 | pending |
+| Phase 5 | `src-tauri/src/menu.rs`, `src/menu/`, App.tsx integration | 5.1-5.3 | pending |
+| Phase 6 | `src/styles/` | 6.1-6.2 | pending |
+
+#### Phase 1 result
+
+Initial (3 commits): `b5eb042` deps · `9d85b39` Editor component · `9c6e3e2` App wire.
+Review fixes (4 commits): `78fdb21` stronger test · `51bc8bf` cancelled flag · `b4916d6` CSS fallbacks · `734a758` mount-once JSDoc.
+
+- Spec compliance: ✅ approved (one minor 3-comment-line deviation around `eslint-disable-next-line`, accepted).
+- Code quality round 1: "With fixes" — 4 Important issues.
+- Code quality round 2 (after fixes): ✅ approved. Breakage test confirmed new assertions actually catch Crepe failures.
+- Decision: leave the 1.67 MB Vite chunk warning (Milkdown+ProseMirror) as a known follow-up. Tauri local bundle, not web-shipped, so accepting for v0.x.
+- Decision: minor follow-ups (DEFAULT_DOC drift, prevMarkdown short-circuit, useState discard comment) deferred — not blocking.
 
 ### Phase 7 — Release (manager)
 
