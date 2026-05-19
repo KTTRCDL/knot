@@ -1,0 +1,157 @@
+# ClaudeTeam configuration for KNOT.
+#
+# Deploy this on your server, alongside the ClaudeTeam runtime.
+# Reference: https://github.com/zylMozart/ClaudeTeam
+#
+# Replace REPLACE_ME values before running `claudeteam init`.
+
+[project]
+name = "knot"
+description = "Open-source, native Markdown editor for macOS"
+# Absolute path to the knot repo checkout on your server. Adjust.
+root = "REPLACE_ME_/path/to/knot"
+# Branch this ClaudeTeam works on. Always one of the dev_kttrcdl_* branches.
+default_branch = "dev_kttrcdl_ClaudeTeam"
+
+[feishu]
+# Your Feishu (Lark) bot config. Create the bot in the Feishu open platform.
+# https://open.feishu.cn/app
+chat_id = "REPLACE_ME"
+# Optional: bot app id / secret. Leave blank to use env vars
+# FEISHU_APP_ID and FEISHU_APP_SECRET from your environment.
+
+[state]
+# Where ClaudeTeam persists worker state across restarts.
+# Should be on durable storage; .claudeteam/ is gitignored.
+dir = "${CLAUDETEAM_STATE_DIR:-.claudeteam/state}"
+
+# -------------------------------------------------------------------------
+# Agent (worker) definitions.
+#
+# The manager is implicit (the agent reading CLAUDETEAM.md). Workers are
+# spun up on /hire and torn down on /fire. Each worker definition below
+# describes a *role*; you can hire multiple instances of the same role for
+# parallel work on independent modules.
+# -------------------------------------------------------------------------
+
+[[agents]]
+name = "frontend-engineer"
+role = "implementer"
+cli = "claude"
+model = "claude-sonnet-4-6"
+instructions = """
+You are a TypeScript / React / Vite implementer.
+Your sandbox is src/ ONLY. Do NOT touch src-tauri/, mcp/, docs/.
+Follow TDD: write the failing test first, then the minimum implementation.
+Commit in Conventional Commits style (feat(scope), fix(scope), test(scope), etc.).
+Run pnpm typecheck && pnpm lint --max-warnings 0 && pnpm test -- --run before committing.
+Report DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT at the end.
+"""
+
+[[agents]]
+name = "backend-engineer"
+role = "implementer"
+cli = "claude"
+model = "claude-sonnet-4-6"
+instructions = """
+You are a Rust / Tauri implementer.
+Your sandbox is src-tauri/ ONLY. Do NOT touch src/, mcp/, docs/.
+Follow TDD where applicable: write the failing test in #[cfg(test)] mod tests first.
+Always run cargo fmt && cargo clippy --all-targets -- -D warnings && cargo test --all before committing.
+Atomic writes need randomized temp suffixes (uuid::Uuid::new_v4().simple()).
+Report DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT at the end.
+"""
+
+[[agents]]
+name = "mcp-engineer"
+role = "implementer"
+cli = "claude"
+model = "claude-sonnet-4-6"
+instructions = """
+You are an MCP server engineer.
+Your sandbox is mcp/ ONLY. Do NOT touch src/, src-tauri/, docs/.
+Follow the MCP spec: https://modelcontextprotocol.io/
+Tools default to read-only; writes require an --allow-write flag at server start.
+All paths are canonicalized + rejected if outside the configured --root.
+Report DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT.
+"""
+
+[[agents]]
+name = "simplifier"
+role = "simplify"
+cli = "claude"
+model = "claude-sonnet-4-6"
+instructions = """
+You invoke the `simplify` skill on the diff between two commits.
+Identify reuse, dead code, repetition, premature abstraction.
+Make ONE focused commit with the cleanup.
+Constrain to the sandbox the original implementer used.
+If nothing to simplify, report "no changes" and exit cleanly.
+"""
+
+[[agents]]
+name = "spec-reviewer"
+role = "review"
+cli = "claude"
+model = "claude-sonnet-4-6"
+instructions = """
+You verify implementation matches its spec, no more and no less.
+Do NOT trust the implementer's self-report. Read the actual code.
+Compare to the plan task description line by line.
+Report ✅ Spec compliant OR ❌ Issues with file:line evidence.
+"""
+
+[[agents]]
+name = "code-reviewer"
+role = "review"
+cli = "claude"
+# Use a more capable model for review — it catches more.
+model = "claude-opus-4-7"
+instructions = """
+You are a Senior Code Reviewer.
+Read the diff between BASE_SHA and HEAD_SHA fully.
+Check: clean separation of concerns, edge cases, error handling, type safety,
+DRY, YAGNI, test quality (real behavior vs mock theater).
+Report Strengths / Issues (Critical/Important/Minor) / Recommendations / Assessment.
+Final verdict: Ready to merge? Yes / No / With fixes.
+"""
+
+# -------------------------------------------------------------------------
+# Visibility filters: what file paths each agent can see in its context.
+# Defaults to "all" if not specified.
+# -------------------------------------------------------------------------
+
+[visibility]
+manager = ["all"]
+frontend-engineer = ["src/", "tests/", "package.json", "tsconfig*.json", "vite.config.ts", "vitest.config.ts", ".scaffold/"]
+backend-engineer = ["src-tauri/", "tests/", ".scaffold/"]
+mcp-engineer = ["mcp/", ".scaffold/"]
+simplifier = ["all"]
+spec-reviewer = ["all"]
+code-reviewer = ["all"]
+
+# -------------------------------------------------------------------------
+# Hooks: commands run on lifecycle events.
+# -------------------------------------------------------------------------
+
+[hooks]
+# Before any worker commits: enforce the human-author rule.
+pre_commit = """
+if [ "$(git config user.email)" = "" ] || echo "$(git config user.email)" | grep -qE 'noreply@anthropic\\.com|bot@github'; then
+  echo "Refusing to commit: git config user.email must be a human." >&2
+  exit 1
+fi
+"""
+
+# After a phase completes: append to the engineering log.
+post_phase = """
+echo "Phase complete at $(date -u +%Y-%m-%dT%H:%M:%SZ): $PHASE_NAME" >> docs/dev-logs/HANDOFF.md
+"""
+
+# Before pushing: refuse to push directly to main or dev.
+pre_push = """
+BRANCH="$(git branch --show-current)"
+case "$BRANCH" in
+  main|dev) echo "Refusing to push directly to $BRANCH; use PR workflow." >&2; exit 1 ;;
+esac
+"""
