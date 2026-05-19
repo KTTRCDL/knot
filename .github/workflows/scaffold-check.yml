@@ -1,0 +1,104 @@
+name: Scaffold Check
+
+# Enforces branch governance rules defined in .scaffold/protected-paths.yml.
+# Runs on every PR. Fails if:
+#   - the PR diff includes a path forbidden on the target branch
+#   - any commit in the PR has a bot author as primary Author
+
+on:
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  paths:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Verify .scaffold/protected-paths.yml is present
+        run: test -f .scaffold/protected-paths.yml
+
+      - name: Check forbidden paths in PR diff
+        run: |
+          set -euo pipefail
+          TARGET="${{ github.base_ref }}"
+          CONFIG=".scaffold/protected-paths.yml"
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          # Read the forbidden_paths list for the target branch
+          mapfile -t FORBIDDEN < <(yq ".${TARGET}.forbidden_paths[]" "${CONFIG}" 2>/dev/null || true)
+          if [ "${#FORBIDDEN[@]}" -eq 0 ]; then
+            echo "No forbidden_paths defined for branch '${TARGET}' — skipping path check."
+            exit 0
+          fi
+
+          echo "Target branch: ${TARGET}"
+          echo "Forbidden paths:"
+          for p in "${FORBIDDEN[@]}"; do echo "  - ${p}"; done
+
+          # Files changed in the PR
+          CHANGED=$(git diff --name-only "${BASE_SHA}".."${HEAD_SHA}")
+
+          FAIL=0
+          for path in "${FORBIDDEN[@]}"; do
+            while IFS= read -r f; do
+              if [[ "${f}" == "${path}"* ]]; then
+                echo "::error file=${f}::Path '${f}' is forbidden on branch '${TARGET}' (matches rule '${path}'). Strip it before PR, or open the PR against a branch that allows it."
+                FAIL=1
+              fi
+            done <<< "${CHANGED}"
+          done
+
+          if [ "${FAIL}" -ne 0 ]; then
+            echo ""
+            echo "Tip: on a dev_kttrcdl_* branch, run \`./scripts/prepare-pr.sh ${TARGET}\` to strip"
+            echo "forbidden paths into a sibling branch before opening the PR."
+            exit 1
+          fi
+          echo "All paths OK for target branch '${TARGET}'."
+
+  authors:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Check every commit's primary Author is a human
+        run: |
+          set -euo pipefail
+          CONFIG=".scaffold/protected-paths.yml"
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          mapfile -t BOTS < <(yq ".author_bot_blocklist[]" "${CONFIG}" 2>/dev/null || true)
+          echo "Bot author blocklist:"
+          for b in "${BOTS[@]}"; do echo "  - ${b}"; done
+
+          FAIL=0
+          while IFS='|' read -r sha email; do
+            for bot in "${BOTS[@]}"; do
+              if [ "${email}" = "${bot}" ]; then
+                echo "::error::Commit ${sha} has a bot primary Author (${email}). The primary Author of every commit must be a human; AI may be a Co-Authored-By trailer."
+                FAIL=1
+              fi
+            done
+          done < <(git log --format='%H|%ae' "${BASE_SHA}".."${HEAD_SHA}")
+
+          if [ "${FAIL}" -ne 0 ]; then
+            exit 1
+          fi
+          echo "All commit authors look like humans."

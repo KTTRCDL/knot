@@ -1,0 +1,53 @@
+# Branch governance: paths that must NOT exist on each branch.
+# Enforced by .github/workflows/scaffold-check.yml on every PR.
+# Helper: scripts/prepare-pr.sh (on dev and dev_kttrcdl_*) strips these
+# locally before opening a PR.
+
+# Commit authorship rule applied to all branches:
+# - The primary `Author:` of every commit must be a human contributor.
+# - `Co-Authored-By:` trailers may name AI assistants for transparency.
+# Authors in this allowlist are treated as bots (the primary Author of
+# a commit must NOT be in this list):
+author_bot_blocklist:
+  - noreply@anthropic.com
+  - github-actions[bot]@users.noreply.github.com
+  - bot@github.com
+
+main:
+  forbidden_paths:
+    - .claude/
+    - .claudeteam/
+    - claudeteam.toml
+    - CLAUDE.md
+    - CLAUDETEAM.md
+    - docs/superpowers/
+    - docs/dev-logs/
+    - docs/claude/
+    - docs/claudeteam/
+    - docs/dev/
+    - scripts/
+
+dev:
+  forbidden_paths:
+    - .claude/
+    - .claudeteam/
+    - claudeteam.toml
+    - CLAUDE.md
+    - CLAUDETEAM.md
+    - docs/superpowers/
+    - docs/dev-logs/
+    - docs/claude/
+    - docs/claudeteam/
+
+dev_kttrcdl_Claude_Code:
+  forbidden_paths:
+    - .claudeteam/
+    - claudeteam.toml
+    - CLAUDETEAM.md
+    - docs/claudeteam/
+
+dev_kttrcdl_ClaudeTeam:
+  forbidden_paths:
+    - .claude/
+    - CLAUDE.md
+    - docs/claude/
