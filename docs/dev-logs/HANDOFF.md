@@ -123,6 +123,42 @@ Review fix commits: `2c05264` Save As bug (path-preservation + 3 tests) · `165b
 - Consider `open()` short-circuit when path+content match the current state.
 - Consider Milkdown round-trip whitespace normalization that could mark welcome doc as dirty on first listener call.
 
+### Scaffold milestone — DONE (2026-05-19, after v0.0.1)
+
+After v0.0.1 shipped, the repo was restructured into a 4-branch governance model so that human and AI development can co-exist cleanly. Future Claude Code sessions read `CLAUDE.md` (root of this branch) to onboard.
+
+| Branch | Purpose | Protection |
+|---|---|---|
+| `main` (1caca59+) | Product / users / open-source. No AI workflow files. | PR-only, no force-push, no delete, enforce_admins. |
+| `dev` (edbfe55+) | Integration trunk for all PRs. Has dev tooling but no AI workflow files. | PR-only, no force-push, no delete, enforce_admins. |
+| `dev_kttrcdl_Claude_Code` (010556d, **current**) | Claude Code workflow. CLAUDE.md, .claude/, docs/claude/, docs/superpowers/, docs/dev-logs/. | Working branch, no protection. |
+| `dev_kttrcdl_ClaudeTeam` (687564e) | ClaudeTeam workflow. CLAUDETEAM.md, claudeteam.toml, .claudeteam/, docs/claudeteam/, docs/superpowers/, docs/dev-logs/. | Working branch, no protection. |
+
+**Scaffold files (everywhere unless noted):**
+- `.scaffold/protected-paths.yml` — source of truth for branch-specific forbidden paths + bot-author blocklist.
+- `.github/workflows/scaffold-check.yml` — CI fails PRs containing forbidden paths or bot-authored commits.
+- `scripts/prepare-pr.sh` (dev+) — strips forbidden paths into a sibling branch before PR.
+- `docs/CONTRIBUTING.md` — public-facing contributor guide.
+- `docs/dev/README.md` (dev+) — developer onboarding.
+- `mcp/README.md` — placeholder for milestone MX (knot-mcp server).
+- `CHANGELOG.md` — Keep-a-Changelog formatted release notes.
+
+**Workflow going forward:**
+
+```
+dev_kttrcdl_Claude_Code  (this branch — Claude Code dev happens here)
+    │
+    │  ./scripts/prepare-pr.sh dev
+    │  → strips CLAUDE.md, .claude/, docs/claude/, docs/superpowers/, docs/dev-logs/
+    │  → opens dev_kttrcdl_Claude_Code--for-dev sibling
+    │
+    PR → dev
+    │
+    PR → main (squash, with clean message)
+    │
+    tag v* → release workflow uploads .dmg
+```
+
 ### Phase 7 — Release (manager) — DONE
 
 | Task | Status |
