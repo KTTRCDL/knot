@@ -26,5 +26,6 @@ describe('theme', () => {
     expect(getTheme()).toBe('light');
     toggleTheme();
     expect(getTheme()).toBe('system');
+    expect(localStorage.getItem('knot.theme')).toBeNull();
   });
 });
