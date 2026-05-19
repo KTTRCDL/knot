@@ -119,13 +119,18 @@ Review fix commits: `2c05264` Save As bug (path-preservation + 3 tests) · `165b
 - Consider `open()` short-circuit when path+content match the current state.
 - Consider Milkdown round-trip whitespace normalization that could mark welcome doc as dirty on first listener call.
 
-### Phase 7 — Release (manager)
+### Phase 7 — Release (manager) — DONE
 
 | Task | Status |
 |---|---|
-| Integration test | pending |
-| Build + sign (unsigned ok for v0.0.1) | pending |
-| Tag + release | pending |
+| 7.1 Polish `tauri.conf.json` | ✅ (commit `7f13ad8`) |
+| 7.2 `.github/workflows/release.yml` | ✅ (commit `7f13ad8`) |
+| 7.3 Local `pnpm tauri build` → `.dmg` | ✅ 5 MB DMG, 11 MB .app, aarch64 |
+| 7.4 Tag + push `v0.0.1` | ✅ tag pushed; release workflow triggered (run id 26095250098) |
+
+**Final M1 totals:** 33 commits on `main`. Tests: 25 frontend (Vitest) + 7 Rust (cargo test) = 32 total. Bundle: ~5 MB `.dmg`, ~11 MB `.app`. All 7 gates (test/typecheck/lint/build/cargo fmt/cargo clippy/cargo test) green.
+
+DMG SHA-256: `1705050610b9b8569ffbe4e3ea8a677d5d1fcbc56b0a48e14ec8706974a419b0`.
 
 ---
 
