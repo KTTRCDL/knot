@@ -25,7 +25,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["dmg", "app"],
+    "category": "Productivity",
+    "shortDescription": "KNOT is Not Only Typora — open-source Markdown editor for macOS.",
+    "longDescription": "KNOT is an open-source, vibe-coded Markdown editor for macOS, inspired by Typora's single-pane live WYSIWYG experience. Built on Tauri 2 + Milkdown.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

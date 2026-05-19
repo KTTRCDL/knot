@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: macos-14
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: pnpm install --frozen-lockfile
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'KNOT ${{ github.ref_name }}'
+          releaseBody: |
+            See [CHANGELOG](../../blob/main/docs/dev-logs/HANDOFF.md) for engineering notes.
+
+            **Install:** Download the `.dmg` below. macOS may show "KNOT can't be opened because it is from an unidentified developer" — right-click the app → Open → Open. This is expected for v0.x (we'll add code signing + notarization in M5).
+          releaseDraft: true
+          prerelease: true
